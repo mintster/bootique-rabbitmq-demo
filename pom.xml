@@ -43,6 +43,7 @@
         <dependency>
             <groupId>io.bootique.rabbitmq.client</groupId>
             <artifactId>bootique-rabbitmq-client</artifactId>
+            <!--<version>0.25-SUPPLEMENT</version>-->
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

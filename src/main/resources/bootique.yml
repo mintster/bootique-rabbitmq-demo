@@ -3,7 +3,7 @@ log:
 
 rabbitmq:
   connections:
-    BQlocal:
+    bqConnection:
       type: 'amqp'
       automaticRecoveryEnabled: true
       connectionTimeout: 60
@@ -20,9 +20,9 @@ rabbitmq:
      internal: true
      type: TOPIC
   queues:
-    bqQueue:
-      autoDelete: true
-      durable: true
-      exclusive: false
+   bqQueue:
+     autoDelete: true
+     durable: true
+     exclusive: false
 
 
