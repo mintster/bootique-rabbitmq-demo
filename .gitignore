@@ -5,3 +5,4 @@ out
 gen
 dev
 target
+/bootique-rabbitmq-demo.iml
