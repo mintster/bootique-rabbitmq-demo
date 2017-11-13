@@ -14,7 +14,7 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public List<Reservation> getReservationList() {
         Set<String> names = new HashSet<>(Arrays.asList("Graham", "Simon", "Sussman", "Woodward", "Bernstein"));
-        List<Reservation> reservations = new ArrayList<Reservation>();
+        List<Reservation> reservations = new ArrayList<>();
         for (String name : names) {
             reservations.add(new Reservation(name));
         }

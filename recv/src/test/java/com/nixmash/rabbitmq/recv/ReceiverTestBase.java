@@ -5,6 +5,8 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.nixmash.rabbitmq.common.service.ReservationService;
 import com.nixmash.rabbitmq.common.service.ReservationServiceImpl;
+import com.nixmash.rabbitmq.common.ui.CommonUI;
+import com.nixmash.rabbitmq.common.ui.ICommonUI;
 import com.nixmash.rabbitmq.recv.ui.IProcessUI;
 import com.nixmash.rabbitmq.recv.ui.ProcessUI;
 import io.bootique.BQRuntime;
@@ -31,6 +33,7 @@ public class ReceiverTestBase implements Module {
     protected static ConnectionFactory connectionFactory;
     protected static ChannelFactory channelFactory;
     protected static ReservationService reservationService;
+    protected static CommonUI commonUI;
 
     @ClassRule
     public static BQTestFactory TEST_FACTORY = new BQTestFactory();
@@ -46,6 +49,7 @@ public class ReceiverTestBase implements Module {
         connectionFactory = runtime.getInstance(ConnectionFactory.class);
         channelFactory = runtime.getInstance(ChannelFactory.class);
         reservationService = runtime.getInstance(ReservationService.class);
+        commonUI = runtime.getInstance(CommonUI.class);
     }
 
     @Test
@@ -58,5 +62,6 @@ public class ReceiverTestBase implements Module {
     public void configure(Binder binder) {
         binder.bind(IProcessUI.class).to(ProcessUI.class);
         binder.bind(ReservationService.class).to(ReservationServiceImpl.class);
+        binder.bind(ICommonUI.class).to(CommonUI.class);
     }
 }

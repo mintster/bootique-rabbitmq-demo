@@ -4,5 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 public interface ISendUI {
-    void init() throws IOException, TimeoutException;
+    void cmdLineSend() throws IOException, TimeoutException;
+
+    void staticSend() throws IOException, TimeoutException;
 }

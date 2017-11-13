@@ -7,15 +7,20 @@ import org.junit.runners.JUnit4;
 
 import java.util.List;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(JUnit4.class)
 public class ReceiverTest extends ReceiverTestBase {
 
     @Test
-    public void getReservationsTest() {
+    public void getCommonReservationsTest() {
         List<Reservation> reservations = reservationService.getReservationList();
         assertTrue(reservations.size() > 3);
     }
 
+    @Test
+    public void getCommonDateTimeTest() {
+        assertNotNull(commonUI.getDateTime());
+    }
 }

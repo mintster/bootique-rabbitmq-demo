@@ -1,6 +1,7 @@
 package com.nixmash.rabbitmq.recv.ui;
 
 import com.google.inject.Inject;
+import com.nixmash.rabbitmq.common.ui.CommonUI;
 import com.rabbitmq.client.*;
 import io.bootique.rabbitmq.client.connection.ConnectionFactory;
 import org.slf4j.Logger;
@@ -20,10 +21,12 @@ public class ProcessUI implements IProcessUI {
     private static final String UTF8 = "UTF-8";
 
     private ConnectionFactory connectionFactory;
+    private CommonUI commonUI;
 
     @Inject
-    public ProcessUI(ConnectionFactory connectionFactory) {
+    public ProcessUI(ConnectionFactory connectionFactory, CommonUI commonUI) {
         this.connectionFactory = connectionFactory;
+        this.commonUI = commonUI;
     }
 
     @Override
@@ -36,7 +39,7 @@ public class ProcessUI implements IProcessUI {
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
                     throws IOException {
                 String message = new String(body, "UTF-8");
-                System.out.println(" [x] Received '" + message + "'");
+                System.out.println(" [x] Received '" + message + " [at] " + commonUI.getDateTime() + "'");
                 try {
                     doWork(message);
                 } finally {

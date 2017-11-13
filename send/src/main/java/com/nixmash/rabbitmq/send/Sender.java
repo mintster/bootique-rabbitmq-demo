@@ -22,7 +22,7 @@ public class Sender implements Module {
                 .module(Sender.class)
                 .autoLoadModules().createRuntime();
         try {
-            runtime.getInstance(SendUI.class).init();
+            runtime.getInstance(SendUI.class).cmdLineSend();
         } catch (IOException | TimeoutException e) {
             e.printStackTrace();
         }
