@@ -1,15 +1,19 @@
 package com.nixmash.rabbitmq.send;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nixmash.rabbitmq.common.dto.Reservation;
 import com.rabbitmq.client.*;
+import com.rabbitmq.tools.json.JSONReader;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -48,4 +52,25 @@ public class SenderTest extends SenderTestBase {
         assertTrue(reservations.size() > 3);
     }
 
+    @Test
+    public void jsonTest() throws IOException {
+        String NAME = "Bammer";
+        Reservation reservation = new Reservation(NAME);
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(reservation);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        mapper.writeValue(out, reservation);
+
+        JSONReader jsonReader = new JSONReader();
+        reservation = mapper.readValue(out.toString(), Reservation.class);
+        assertTrue(reservation.getName().equals(NAME));
+    }
+
+    @Test
+    public void bracketsContentTest() {
+        String text = "{Bammer}";
+        if (text.startsWith("{"))
+            text = text.split("[\\{\\}]")[1];
+        assertEquals(text, "Bammer");
+    }
 }

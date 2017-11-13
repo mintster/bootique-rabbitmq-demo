@@ -5,4 +5,6 @@ import java.util.concurrent.TimeoutException;
 
 public interface IProcessUI {
     void handleMessageQueue() throws IOException, TimeoutException;
+
+    void handleReservationQueue() throws IOException;
 }

@@ -8,7 +8,6 @@ import io.bootique.BQRuntime;
 import io.bootique.Bootique;
 
 import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 
 public class Receiver implements Module {
 
@@ -22,8 +21,9 @@ public class Receiver implements Module {
                 .module(Receiver.class)
                 .autoLoadModules().createRuntime();
         try {
+            runtime.getInstance(ProcessUI.class).handleReservationQueue();
             runtime.getInstance(ProcessUI.class).handleMessageQueue();
-        } catch (IOException | TimeoutException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

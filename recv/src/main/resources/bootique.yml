@@ -3,7 +3,7 @@ log:
 
 rabbitmq:
   connections:
-    bqDemoConnection:
+    bqConnection:
       type: 'amqp'
       automaticRecoveryEnabled: true
       connectionTimeout: 60
@@ -14,13 +14,22 @@ rabbitmq:
       username: guest
       virtualHost: /
   exchanges:
-   bqDemo:
+   bqMessages:
+     autoDelete: false
+     durable: true
+     internal: false
+     type: TOPIC
+   bqReservations:
      autoDelete: false
      durable: true
      internal: false
      type: TOPIC
   queues:
-   bqDemo:
+   bqMessages:
+     autoDelete: false
+     durable: true
+     exclusive: false
+   bqReservations:
      autoDelete: false
      durable: true
      exclusive: false
