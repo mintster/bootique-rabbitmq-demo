@@ -21,8 +21,8 @@ public class Receiver implements Module {
                 .module(Receiver.class)
                 .autoLoadModules().createRuntime();
         try {
-            runtime.getInstance(ProcessUI.class).handleReservationQueue();
             runtime.getInstance(ProcessUI.class).handleMessageQueue();
+            runtime.getInstance(ProcessUI.class).handleReservationQueue();
         } catch (IOException e) {
             e.printStackTrace();
         }

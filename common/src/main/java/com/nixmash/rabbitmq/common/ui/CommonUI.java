@@ -5,11 +5,11 @@ import java.util.Date;
 
 public class CommonUI implements ICommonUI{
 
-    public static final String MESSAGE_QUEUE_NAME = "bqMessages";
-    public static final String RESERVATION_QUEUE_NAME = "bqReservations";
-    public static final String CONNECTION_NAME = "bqConnection";
-    public static final String MESSAGE_EXCHANGE_NAME = "bqMessages";
-    public static final String RESERVATION_EXCHANGE_NAME = "bqReservations";
+    public static final String MESSAGE_QUEUE = "bqMessages";
+    public static final String RESERVATION_QUEUE = "bqReservations";
+    public static final String CONNECTION = "bqConnection";
+    public static final String MESSAGE_EXCHANGE = "bqMessages";
+    public static final String RESERVATION_EXCHANGE = "bqReservations";
     public static final String UTF8 = "UTF-8";
 
     @Override

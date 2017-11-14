@@ -7,9 +7,6 @@ import com.nixmash.rabbitmq.send.ui.SendUI;
 import io.bootique.BQRuntime;
 import io.bootique.Bootique;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-
 public class Sender implements Module {
 
     private static final org.slf4j.Logger logger =
@@ -21,11 +18,8 @@ public class Sender implements Module {
                 .args("--config=classpath:bootique.yml")
                 .module(Sender.class)
                 .autoLoadModules().createRuntime();
-        try {
+
             runtime.getInstance(SendUI.class).cmdLineSend();
-        } catch (IOException | TimeoutException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

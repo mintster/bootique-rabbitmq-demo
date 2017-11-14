@@ -29,15 +29,15 @@ public class ProcessUI implements IProcessUI {
 
     @Override
     public void handleMessageQueue() throws IOException {
-        Connection connection = connectionFactory.forName(CONNECTION_NAME);
+        Connection connection = connectionFactory.forName(CONNECTION);
         Channel channel = connection.createChannel();
         channel.basicQos(1);
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
-            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
-                    throws IOException {
+            public void handleDelivery(String consumerTag, Envelope envelope,
+                                       AMQP.BasicProperties properties, byte[] body) throws IOException {
                 String message = new String(body, "UTF-8");
-                System.out.println(" [x] Received '" + message + " [at] " + commonUI.getDateTime() + "'");
+                System.out.println(" [x] Received Message '" + message + " [at] " + commonUI.getDateTime() + "'");
                 try {
                     doWork(message);
                 } finally {
@@ -46,12 +46,12 @@ public class ProcessUI implements IProcessUI {
                 }
             }
         };
-        channel.basicConsume(MESSAGE_QUEUE_NAME, false, consumer);
+        channel.basicConsume(MESSAGE_QUEUE, false, consumer);
     }
 
     @Override
     public void handleReservationQueue() throws IOException {
-        Connection connection = connectionFactory.forName(CONNECTION_NAME);
+        Connection connection = connectionFactory.forName(CONNECTION);
         Channel channel = connection.createChannel();
         channel.basicQos(1);
         Consumer consumer = new DefaultConsumer(channel) {
@@ -70,7 +70,7 @@ public class ProcessUI implements IProcessUI {
                 }
             }
         };
-        channel.basicConsume(RESERVATION_QUEUE_NAME, false, consumer);
+        channel.basicConsume(RESERVATION_QUEUE, false, consumer);
     }
 
     private static void doWork(String task) {

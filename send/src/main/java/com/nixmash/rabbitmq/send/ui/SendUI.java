@@ -36,19 +36,30 @@ public class SendUI implements ISendUI {
     }
 
     @Override
-    public void cmdLineSend() throws IOException, TimeoutException {
+    public void cmdLineSend() {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         Boolean sending = true;
         while (sending) {
             System.out.print("Enter a message or a reservation name in {brackets}. [ENTER] to quit: ");
-            String message = br.readLine();
+            String message = null;
+            try {
+                message = br.readLine();
+            } catch (IOException e) {
+                System.out.println("Exception on data input: " + e.getMessage());
+                System.exit(-1);
+            }
             if (!message.equals(StringUtils.EMPTY)) {
-                if (message.startsWith("{")) {
-                    Reservation reservation = new Reservation(message.split("[\\{\\}]")[1]);
-                    sendReservation(reservation);
-                } else
-                    sendMessage(message);
+                try {
+                    if (message.startsWith("{")) {
+                        Reservation reservation = new Reservation(message.split("[\\{\\}]")[1]);
+                        sendReservation(reservation);
+                    } else
+                        sendMessage(message);
+                } catch (TimeoutException | IOException e) {
+                    System.out.println("Exception sending to queue: " + e.getMessage());
+                    System.exit(-1);
+                }
             } else
                 sending = false;
         }
@@ -65,10 +76,11 @@ public class SendUI implements ISendUI {
     }
 
     private void sendMessage(String message) throws IOException, TimeoutException {
-        Connection connection = connectionFactory.forName(CONNECTION_NAME);
-        Channel channel = channelFactory.openChannel(connection, MESSAGE_EXCHANGE_NAME, MESSAGE_QUEUE_NAME, "");
+        Connection connection = connectionFactory.forName(CONNECTION);
+        Channel channel =
+                channelFactory.openChannel(connection, MESSAGE_EXCHANGE, MESSAGE_QUEUE, "");
         message = message + " : " + commonUI.getDateTime();
-        channel.basicPublish("", MESSAGE_QUEUE_NAME, null, message.getBytes(UTF8));
+        channel.basicPublish("", MESSAGE_QUEUE, null, message.getBytes(UTF8));
         System.out.println(" [x] Sent '" + message + "'");
         channel.close();
         connection.close();
@@ -80,9 +92,9 @@ public class SendUI implements ISendUI {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         mapper.writeValue(out, reservation);
 
-        Connection connection = connectionFactory.forName(CONNECTION_NAME);
-        Channel channel = channelFactory.openChannel(connection, RESERVATION_EXCHANGE_NAME, RESERVATION_QUEUE_NAME, "");
-        channel.basicPublish("", RESERVATION_QUEUE_NAME, null, out.toByteArray());
+        Connection connection = connectionFactory.forName(CONNECTION);
+        Channel channel = channelFactory.openChannel(connection, RESERVATION_EXCHANGE, RESERVATION_QUEUE, "");
+        channel.basicPublish("", RESERVATION_QUEUE, null, out.toByteArray());
         System.out.println(" [x] Sent '" + json + "'");
         channel.close();
         connection.close();
