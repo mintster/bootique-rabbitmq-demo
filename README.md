@@ -31,7 +31,8 @@ The demo handles both text messages and `Reservation` objects. To send a `Reserv
 
 ## NixMash Posts
 
-- [A Bootique RabbitMQ Demo](http://nixmash.com/post/a-bootique-rabbitmq-demo)
+- [A Bootique RabbitMQ Demo Application](http://nixmash.com/post/a-bootique-rabbitmq-demo)
+- [Passing POJOs in RabbitMQ](http://nixmash.com/post/passing-pojos-in-rabbitmq)
 
 
 ***Last Updated** 11-14-2017*

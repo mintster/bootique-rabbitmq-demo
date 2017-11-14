@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nixmash.rabbitmq.common.dto.Reservation;
 import com.rabbitmq.client.*;
 import com.rabbitmq.tools.json.JSONReader;
+import com.rabbitmq.tools.json.JSONWriter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -53,17 +54,24 @@ public class SenderTest extends SenderTestBase {
     }
 
     @Test
-    public void jsonTest() throws IOException {
+    public void jsonJacksonTest() throws IOException {
         String NAME = "Bammer";
         Reservation reservation = new Reservation(NAME);
         ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(reservation);
+        String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(reservation);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         mapper.writeValue(out, reservation);
 
         JSONReader jsonReader = new JSONReader();
         reservation = mapper.readValue(out.toString(), Reservation.class);
         assertTrue(reservation.getName().equals(NAME));
+    }
+
+    @Test
+    public void jsonWriterTest() {
+        JSONWriter writer = new JSONWriter(true);
+        Reservation reservation = new Reservation("Bammer");
+        String json = writer.write(reservation);
     }
 
     @Test

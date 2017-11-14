@@ -93,7 +93,8 @@ public class SendUI implements ISendUI {
         mapper.writeValue(out, reservation);
 
         Connection connection = connectionFactory.forName(CONNECTION);
-        Channel channel = channelFactory.openChannel(connection, RESERVATION_EXCHANGE, RESERVATION_QUEUE, "");
+        Channel channel =
+                channelFactory.openChannel(connection, RESERVATION_EXCHANGE, RESERVATION_QUEUE, "");
         channel.basicPublish("", RESERVATION_QUEUE, null, out.toByteArray());
         System.out.println(" [x] Sent '" + json + "'");
         channel.close();

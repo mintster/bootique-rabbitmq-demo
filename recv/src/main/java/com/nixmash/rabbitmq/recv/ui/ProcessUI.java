@@ -56,7 +56,10 @@ public class ProcessUI implements IProcessUI {
         channel.basicQos(1);
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
-            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
+            public void handleDelivery(String consumerTag,
+                                       Envelope envelope,
+                                       AMQP.BasicProperties properties,
+                                       byte[] body)
                     throws IOException {
                 JSONReader jsonReader = new JSONReader();
                 ObjectMapper mapper = new ObjectMapper();
