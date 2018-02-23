@@ -3,7 +3,9 @@ package com.nixmash.rabbitmq.recv;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.nixmash.rabbitmq.recv.ui.IProcessUI;
+import com.nixmash.rabbitmq.recv.ui.IRpcProcessUI;
 import com.nixmash.rabbitmq.recv.ui.ProcessUI;
+import com.nixmash.rabbitmq.recv.ui.RpcProcessUI;
 import io.bootique.BQRuntime;
 import io.bootique.Bootique;
 
@@ -21,8 +23,9 @@ public class Receiver implements Module {
                 .module(Receiver.class)
                 .autoLoadModules().createRuntime();
         try {
-            runtime.getInstance(ProcessUI.class).handleMessageQueue();
-            runtime.getInstance(ProcessUI.class).handleReservationQueue();
+//            runtime.getInstance(ProcessUI.class).handleMessageQueue();
+//            runtime.getInstance(ProcessUI.class).handleReservationQueue();
+            runtime.getInstance(RpcProcessUI.class).handleRpcMessageQueue();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -31,5 +34,6 @@ public class Receiver implements Module {
     @Override
     public void configure(Binder binder) {
         binder.bind(IProcessUI.class).to(ProcessUI.class);
+        binder.bind(IRpcProcessUI.class).to(RpcProcessUI.class);
     }
 }
