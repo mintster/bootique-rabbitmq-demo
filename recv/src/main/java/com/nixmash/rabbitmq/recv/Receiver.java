@@ -1,7 +1,11 @@
 package com.nixmash.rabbitmq.recv;
 
 import com.google.inject.Binder;
+import com.google.inject.Inject;
 import com.google.inject.Module;
+import com.nixmash.rabbitmq.common.config.RabbitConfig;
+import com.nixmash.rabbitmq.common.ui.CommonUI;
+import com.nixmash.rabbitmq.common.ui.ICommonUI;
 import com.nixmash.rabbitmq.recv.ui.IProcessUI;
 import com.nixmash.rabbitmq.recv.ui.IRpcProcessUI;
 import com.nixmash.rabbitmq.recv.ui.ProcessUI;
@@ -13,6 +17,9 @@ import java.io.IOException;
 
 public class Receiver implements Module {
 
+    @Inject
+    private static RabbitConfig rabbitConfig;
+
     private static final org.slf4j.Logger logger =
             org.slf4j.LoggerFactory.getLogger(Receiver.class);
 
@@ -22,10 +29,18 @@ public class Receiver implements Module {
                 .args("--config=classpath:bootique.yml")
                 .module(Receiver.class)
                 .autoLoadModules().createRuntime();
+
         try {
-//            runtime.getInstance(ProcessUI.class).handleMessageQueue();
-//            runtime.getInstance(ProcessUI.class).handleReservationQueue();
-            runtime.getInstance(RpcProcessUI.class).handleRpcMessageQueue();
+            CommonUI commonUI = runtime.getInstance(CommonUI.class);
+            switch (commonUI.getAppStartup()) {
+                case RPC:
+                    runtime.getInstance(RpcProcessUI.class).handleRpcMessageQueue();
+                    break;
+                case MESSAGES:
+                    runtime.getInstance(ProcessUI.class).handleMessageQueue();
+                    runtime.getInstance(ProcessUI.class).handleReservationQueue();
+                    break;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -35,5 +50,6 @@ public class Receiver implements Module {
     public void configure(Binder binder) {
         binder.bind(IProcessUI.class).to(ProcessUI.class);
         binder.bind(IRpcProcessUI.class).to(RpcProcessUI.class);
+        binder.bind(ICommonUI.class).to(CommonUI.class);
     }
 }

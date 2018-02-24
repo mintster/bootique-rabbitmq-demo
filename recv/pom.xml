@@ -10,7 +10,7 @@
         <version>0.1.0</version>
     </parent>
 
-    <artifactId>rabbitmq-demo-recv</artifactId>
+    <artifactId>recv</artifactId>
     <packaging>jar</packaging>
     <version>0.1.0</version>
 
@@ -27,7 +27,7 @@
     </dependencies>
 
     <build>
-        <finalName>mqreceive</finalName>
+        <finalName>recv</finalName>
         <plugins>
             <plugin>
                 <artifactId>maven-shade-plugin</artifactId>

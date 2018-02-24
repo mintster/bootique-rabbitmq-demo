@@ -5,10 +5,13 @@ import com.nixmash.rabbitmq.common.ui.CommonUI;
 import com.rabbitmq.client.*;
 import io.bootique.rabbitmq.client.channel.ChannelFactory;
 import io.bootique.rabbitmq.client.connection.ConnectionFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -36,11 +39,32 @@ public class RpcSendUI implements IRpcSendUI {
     }
 
     @Override
-    public void sendRpcMessage() {
+    public void cmdLineRpcSend() {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+        Boolean sending = true;
+        while (sending) {
+            System.out.print("Enter a number. [ENTER] to quit: ");
+            String message = null;
+            try {
+                message = br.readLine();
+            } catch (IOException e) {
+                System.out.println("Exception on data input: " + e.getMessage());
+                System.exit(-1);
+            }
+            if (!message.equals(StringUtils.EMPTY)) {
+                sendRpcMessage(message);
+            } else
+                sending = false;
+        }
+    }
+
+
+    private void sendRpcMessage(String message) {
         String response = null;
-        System.out.println(" [x] Requesting fib(30)");
+//        System.out.println(" [x] Requesting fib(30)");
         try {
-            response = call("30");
+            response = call(message);
             System.out.println(" [.] Got '" + response + "'");
 /*            channel.close();
             connection.close();*/

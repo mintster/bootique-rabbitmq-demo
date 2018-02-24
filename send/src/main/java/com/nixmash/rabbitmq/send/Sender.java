@@ -2,6 +2,8 @@ package com.nixmash.rabbitmq.send;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
+import com.nixmash.rabbitmq.common.ui.CommonUI;
+import com.nixmash.rabbitmq.common.ui.ICommonUI;
 import com.nixmash.rabbitmq.send.ui.IRpcSendUI;
 import com.nixmash.rabbitmq.send.ui.ISendUI;
 import com.nixmash.rabbitmq.send.ui.RpcSendUI;
@@ -21,13 +23,23 @@ public class Sender implements Module {
                 .module(Sender.class)
                 .autoLoadModules().createRuntime();
 
-//            runtime.getInstance(SendUI.class).cmdLineSend();
-        runtime.getInstance(RpcSendUI.class).sendRpcMessage();
+        CommonUI commonUI = runtime.getInstance(CommonUI.class);
+        switch (commonUI.getAppStartup()) {
+            case MESSAGES:
+                runtime.getInstance(SendUI.class).cmdLineSend();
+                break;
+            case RPC:
+                runtime.getInstance(RpcSendUI.class).cmdLineRpcSend();
+                break;
+        }
+
     }
 
     @Override
     public void configure(Binder binder) {
         binder.bind(ISendUI.class).to(SendUI.class);
         binder.bind(IRpcSendUI.class).to(RpcSendUI.class);
+        binder.bind(ICommonUI.class).to(CommonUI.class);
     }
+
 }
