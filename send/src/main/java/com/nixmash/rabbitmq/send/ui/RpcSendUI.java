@@ -26,16 +26,12 @@ public class RpcSendUI implements IRpcSendUI {
     private ChannelFactory channelFactory;
     private CommonUI commonUI;
 
-    private Channel channel;
-    private Connection connection;
 
     @Inject
     public RpcSendUI(ConnectionFactory connectionFactory, ChannelFactory channelFactory, CommonUI commonUI) throws IOException, TimeoutException {
         this.connectionFactory = connectionFactory;
         this.channelFactory = channelFactory;
         this.commonUI = commonUI;
-        this.connection = connectionFactory.forName(CONNECTION);
-        this.channel = channelFactory.openChannel(connection, RPC_MESSAGE_EXCHANGE, RPC_MESSAGE_QUEUE, "");
     }
 
     @Override
@@ -66,17 +62,16 @@ public class RpcSendUI implements IRpcSendUI {
         try {
             response = call(message);
             System.out.println(" [.] Got '" + response + "'");
-/*            channel.close();
-            connection.close();*/
         } catch (IOException | InterruptedException | TimeoutException e) {
             e.printStackTrace();
         }
-
     }
 
     public String call(String message) throws IOException, InterruptedException, TimeoutException {
         String corrId = UUID.randomUUID().toString();
 
+        Connection connection = connectionFactory.forName(CONNECTION);
+        Channel channel = channelFactory.openChannel(connection, RPC_MESSAGE_EXCHANGE, RPC_MESSAGE_QUEUE, "");
         String replyQueueName = channel.queueDeclare().getQueue();
         AMQP.BasicProperties props = new AMQP.BasicProperties
                 .Builder()
@@ -95,6 +90,8 @@ public class RpcSendUI implements IRpcSendUI {
                 }
             }
         });
+/*        channel.close();
+        connection.close();*/
         return response.take();
     }
 }

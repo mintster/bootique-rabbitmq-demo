@@ -17,7 +17,6 @@ public class CommonUI implements ICommonUI{
     public static final String RPC_MESSAGE_EXCHANGE = "rpcMessages";
     public static final String RESERVATION_EXCHANGE = "bqReservations";
     public static final String UTF8 = "UTF-8";
-    public static final String CORRELATION_ID = "f1c9c828-3282-44ec-84b7-01e9b720f326";
 
     private RabbitConfig rabbitConfig;
 

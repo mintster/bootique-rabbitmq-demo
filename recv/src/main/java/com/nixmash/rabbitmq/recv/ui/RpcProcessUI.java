@@ -55,7 +55,6 @@ public class RpcProcessUI implements IRpcProcessUI {
                     synchronized (this) {
                         this.notify();
                     }
-
                 }
             }
         };
