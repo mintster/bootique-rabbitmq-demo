@@ -8,5 +8,12 @@ import java.util.List;
 @ImplementedBy(ReservationServiceImpl.class)
 public interface ReservationService {
     Reservation addReservation(String name);
+
+    Reservation getReservation(String name);
+
     List<Reservation> getReservationList();
+
+    String getPastVisitMessage(String guestName);
+
+    Integer getPastVisitCount(String guestName);
 }

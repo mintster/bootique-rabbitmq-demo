@@ -1,7 +1,8 @@
 package com.nixmash.rabbitmq.send.ui;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import com.nixmash.rabbitmq.common.ui.CommonUI;
+import com.nixmash.rabbitmq.common.dto.Reservation;
 import com.rabbitmq.client.*;
 import io.bootique.rabbitmq.client.channel.ChannelFactory;
 import io.bootique.rabbitmq.client.connection.ConnectionFactory;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.UUID;
@@ -24,14 +26,12 @@ public class RpcSendUI implements IRpcSendUI {
     private static final Logger logger = LoggerFactory.getLogger(RpcSendUI.class);
     private ConnectionFactory connectionFactory;
     private ChannelFactory channelFactory;
-    private CommonUI commonUI;
 
 
     @Inject
-    public RpcSendUI(ConnectionFactory connectionFactory, ChannelFactory channelFactory, CommonUI commonUI) throws IOException, TimeoutException {
+    public RpcSendUI(ConnectionFactory connectionFactory, ChannelFactory channelFactory) throws IOException, TimeoutException {
         this.connectionFactory = connectionFactory;
         this.channelFactory = channelFactory;
-        this.commonUI = commonUI;
     }
 
     @Override
@@ -40,7 +40,7 @@ public class RpcSendUI implements IRpcSendUI {
 
         Boolean sending = true;
         while (sending) {
-            System.out.print("Enter a number. [ENTER] to quit: ");
+            System.out.print("Enter a Reservation Name. [ENTER] to quit: ");
             String message = null;
             try {
                 message = br.readLine();
@@ -49,26 +49,36 @@ public class RpcSendUI implements IRpcSendUI {
                 System.exit(-1);
             }
             if (!message.equals(StringUtils.EMPTY)) {
-                sendRpcMessage(message);
+                try {
+                    Reservation reservation = new Reservation(message);
+                    sendRpcReservation(reservation);
+                } catch (Exception e) {
+                    System.out.println("Exception sending to queue: " + e.getMessage());
+                    System.exit(-1);
+                }
             } else
                 sending = false;
         }
     }
 
 
-    private void sendRpcMessage(String message) {
+    private void sendRpcReservation(Reservation reservation) {
         String response = null;
-//        System.out.println(" [x] Requesting fib(30)");
         try {
-            response = call(message);
+            response = call(reservation);
             System.out.println(" [.] Got '" + response + "'");
         } catch (IOException | InterruptedException | TimeoutException e) {
             e.printStackTrace();
         }
     }
 
-    public String call(String message) throws IOException, InterruptedException, TimeoutException {
+    private String call(Reservation reservation) throws IOException, InterruptedException, TimeoutException {
         String corrId = UUID.randomUUID().toString();
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(reservation);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        mapper.writeValue(out, reservation);
 
         Connection connection = connectionFactory.forName(CONNECTION);
         Channel channel = channelFactory.openChannel(connection, RPC_MESSAGE_EXCHANGE, RPC_MESSAGE_QUEUE, "");
@@ -79,10 +89,10 @@ public class RpcSendUI implements IRpcSendUI {
                 .replyTo(replyQueueName)
                 .build();
 
-        channel.basicPublish("", RPC_MESSAGE_QUEUE, props, message.getBytes("UTF-8"));
+        channel.basicPublish("", RPC_MESSAGE_QUEUE, props, out.toByteArray());
         final BlockingQueue<String> response = new ArrayBlockingQueue<String>(1);
 
-        channel.basicConsume(replyQueueName, true, new DefaultConsumer(channel) {
+        channel.basicConsume(replyQueueName, false, new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                 if (properties.getCorrelationId().equals(corrId)) {
@@ -90,8 +100,9 @@ public class RpcSendUI implements IRpcSendUI {
                 }
             }
         });
-/*        channel.close();
-        connection.close();*/
-        return response.take();
+        String take = response.take();
+        channel.close();
+        connection.close();
+        return take;
     }
 }

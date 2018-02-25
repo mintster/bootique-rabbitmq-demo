@@ -18,6 +18,7 @@ public class Reservation implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private UUID id;
     private String name;
+    private String gender;
 
     @JsonFormat
             (shape = JsonFormat.Shape.STRING, pattern = "MM-dd-yyyy hh:mm:ss:SSS")
@@ -32,6 +33,14 @@ public class Reservation implements Serializable {
         this.id = UUID.randomUUID();
         this.createdDateTime = Timestamp.valueOf(LocalDateTime.now());
     }
+
+    public Reservation(String name, String gender) {
+        this.name = name;
+        this.gender = gender;
+        this.id = UUID.randomUUID();
+        this.createdDateTime = Timestamp.valueOf(LocalDateTime.now());
+    }
+
 
 
     // endregion
@@ -60,6 +69,14 @@ public class Reservation implements Serializable {
 
     public void setCreatedDateTime(Timestamp createdDateTime) {
         this.createdDateTime = createdDateTime;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
     //endregion

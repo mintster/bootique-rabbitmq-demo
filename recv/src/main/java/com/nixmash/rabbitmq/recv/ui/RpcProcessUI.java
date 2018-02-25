@@ -1,8 +1,12 @@
 package com.nixmash.rabbitmq.recv.ui;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import com.nixmash.rabbitmq.common.dto.Reservation;
+import com.nixmash.rabbitmq.common.service.ReservationService;
 import com.nixmash.rabbitmq.common.ui.CommonUI;
 import com.rabbitmq.client.*;
+import com.rabbitmq.tools.json.JSONReader;
 import io.bootique.rabbitmq.client.connection.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,11 +22,13 @@ public class RpcProcessUI implements IRpcProcessUI {
 
     private ConnectionFactory connectionFactory;
     private CommonUI commonUI;
+    private ReservationService reservationService;
 
     @Inject
-    public RpcProcessUI(ConnectionFactory connectionFactory, CommonUI commonUI) {
+    public RpcProcessUI(ConnectionFactory connectionFactory, CommonUI commonUI, ReservationService reservationService) {
         this.connectionFactory = connectionFactory;
         this.commonUI = commonUI;
+        this.reservationService = reservationService;
     }
 
     @Override
@@ -30,7 +36,6 @@ public class RpcProcessUI implements IRpcProcessUI {
         Connection connection = connectionFactory.forName(CONNECTION);
         Channel channel = connection.createChannel();
         channel.basicQos(1);
-//        System.out.println(" [.] Awaiting RPC requests");
 
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
@@ -42,10 +47,12 @@ public class RpcProcessUI implements IRpcProcessUI {
 
                 String response = "";
                 try {
-                    String message = new String(body, "UTF-8");
-                    System.out.println(" [.] Received Message : '" + message + " [at] " + commonUI.getDateTime() + "'");
-                    int n = Integer.parseInt(message);
-                    response += fib(n);
+                    JSONReader jsonReader = new JSONReader();
+                    ObjectMapper mapper = new ObjectMapper();
+                    Reservation reservation = mapper.readValue(body, Reservation.class);
+                    System.out.println(" [x] Received '" + reservation.toString() + " [at] " + commonUI.getDateTime() + "'");
+                    // TODO: Add reservation processing, return reservation
+                    response += reservationService.getPastVisitMessage(reservation.getName());
                 } catch (RuntimeException e) {
                     System.out.println(" [.] EXCEPTION:  " + e.toString());
                 } finally {
@@ -71,9 +78,4 @@ public class RpcProcessUI implements IRpcProcessUI {
 
     }
 
-    private static int fib(int n) {
-        if (n == 0) return 0;
-        if (n == 1) return 1;
-        return fib(n - 1) + fib(n - 2);
-    }
 }

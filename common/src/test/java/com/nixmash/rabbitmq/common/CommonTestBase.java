@@ -5,6 +5,8 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.nixmash.rabbitmq.common.service.ReservationService;
 import com.nixmash.rabbitmq.common.service.ReservationServiceImpl;
+import com.nixmash.rabbitmq.common.ui.CommonUI;
+import com.nixmash.rabbitmq.common.ui.ICommonUI;
 import io.bootique.BQRuntime;
 import io.bootique.test.junit.BQTestFactory;
 import org.junit.BeforeClass;
@@ -24,7 +26,8 @@ public class CommonTestBase implements Module {
 
     private static final Logger logger = LoggerFactory.getLogger(CommonTestBase.class);
 
-    protected static ReservationServiceImpl reservationServiceImpl;
+    protected static ReservationService reservationService;
+    protected static CommonUI commonUI;
 
     @ClassRule
     public static BQTestFactory TEST_FACTORY = new BQTestFactory();
@@ -37,17 +40,19 @@ public class CommonTestBase implements Module {
                 .autoLoadModules()
                 .createRuntime();
 
-        reservationServiceImpl = runtime.getInstance(ReservationServiceImpl.class);
+        reservationService = runtime.getInstance(ReservationServiceImpl.class);
+        commonUI= runtime.getInstance(CommonUI.class);
     }
 
     @Test
     public void msgGoAway() {
-        assertNotNull(reservationServiceImpl);
+        assertNotNull(reservationService);
     }
 
 
     @Override
     public void configure(Binder binder) {
         binder.bind(ReservationService.class).to(ReservationServiceImpl.class);
+        binder.bind(ICommonUI.class).to(CommonUI.class);
     }
 }

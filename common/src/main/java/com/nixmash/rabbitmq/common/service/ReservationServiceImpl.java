@@ -1,10 +1,23 @@
 package com.nixmash.rabbitmq.common.service;
 
+import com.google.inject.Inject;
 import com.nixmash.rabbitmq.common.dto.Reservation;
+import com.nixmash.rabbitmq.common.ui.CommonUI;
+import org.apache.commons.lang3.StringUtils;
 
+import java.text.MessageFormat;
 import java.util.*;
 
+import static com.nixmash.rabbitmq.common.ui.CommonUI.*;
+
 public class ReservationServiceImpl implements ReservationService {
+
+    private CommonUI commonUI;
+
+    @Inject
+    public ReservationServiceImpl(CommonUI commonUI) {
+        this.commonUI = commonUI;
+    }
 
     @Override
     public Reservation addReservation(String name) {
@@ -12,12 +25,50 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
+    public Reservation getReservation(String name) {
+        Optional<Reservation> reservation;
+        reservation = getReservationList()
+                .stream()
+                .filter(r -> r.getName().equalsIgnoreCase(name))
+                .findFirst();
+        return reservation.orElse(null);
+    }
+
+    @Override
     public List<Reservation> getReservationList() {
-        Set<String> names = new HashSet<>(Arrays.asList("Graham", "Simon", "Sussman", "Woodward", "Bernstein"));
         List<Reservation> reservations = new ArrayList<>();
-        for (String name : names) {
-            reservations.add(new Reservation(name));
-        }
+        reservations.add(new Reservation(BOB, GENDER_MALE));
+        reservations.add(new Reservation(BOB, GENDER_MALE));
+        reservations.add(new Reservation(BILL, GENDER_MALE));
+        reservations.add(new Reservation(JANET, GENDER_FEMALE));
+        reservations.add(new Reservation(JANET, GENDER_FEMALE));
+        reservations.add(new Reservation(JANET, GENDER_FEMALE));
         return reservations;
     }
+
+    @Override
+    public String getPastVisitMessage(String guestName) {
+        String pastVisitMessage = null;
+        Integer pastVisitCount = getPastVisitCount(guestName);
+        if (pastVisitCount > 0) {
+            Reservation reservation = getReservation(guestName);
+            pastVisitMessage = MessageFormat.format("{0} has been a guest with us {1} times before. This is {2} {3} visit.",
+                    StringUtils.capitalize(guestName),
+                    pastVisitCount,
+                    commonUI.getGenderHisHer(reservation),
+                    commonUI.getPrettyCurrentVisit(pastVisitCount));
+        } else {
+            pastVisitMessage = MessageFormat.format("{0} is a new guest!", StringUtils.capitalize(guestName));
+        }
+        return pastVisitMessage;
+    }
+
+    @Override
+    public Integer getPastVisitCount(String guestName) {
+        List<Reservation> reservations = getReservationList();
+        return (int) reservations.stream().filter(r -> r.getName().equalsIgnoreCase(guestName)).count();
+    }
+
+
+
 }

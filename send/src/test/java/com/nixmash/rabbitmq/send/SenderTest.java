@@ -50,7 +50,7 @@ public class SenderTest extends SenderTestBase {
     @Test
     public void getReservationsTest() {
         List<Reservation> reservations = reservationService.getReservationList();
-        assertTrue(reservations.size() > 3);
+        assertTrue(reservations.size() > 1);
     }
 
     @Test
