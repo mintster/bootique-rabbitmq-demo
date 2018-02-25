@@ -4,4 +4,5 @@ import java.io.IOException;
 
 public interface IRpcProcessUI {
     void handleRpcMessageQueue() throws IOException;
+    void handleRpcReservationQueue() throws IOException;
 }

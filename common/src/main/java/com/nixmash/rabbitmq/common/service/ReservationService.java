@@ -1,6 +1,7 @@
 package com.nixmash.rabbitmq.common.service;
 
 import com.google.inject.ImplementedBy;
+import com.nixmash.rabbitmq.common.dto.Customer;
 import com.nixmash.rabbitmq.common.dto.Reservation;
 
 import java.util.List;
@@ -16,4 +17,6 @@ public interface ReservationService {
     String getPastVisitMessage(String guestName);
 
     Integer getPastVisitCount(String guestName);
+
+    List<Customer> getCustomerList();
 }

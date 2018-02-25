@@ -37,10 +37,12 @@ public class RpcSendUI implements IRpcSendUI {
     @Override
     public void cmdLineRpcSend() {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-
+        System.out.println("----------------------------------------------------------------------------");
+        System.out.println("GUEST NAME RETURNS A CUSTOMER OBJECT. SENDING A RESERVATION OBJECT RETURNS INFO MESSAGE.");
+        System.out.println("----------------------------------------------------------------------------\n");
         Boolean sending = true;
         while (sending) {
-            System.out.print("Enter a Reservation Name. [ENTER] to quit: ");
+            System.out.print("Enter guest name for Customer Data Record, in {brackets} to retrieve check-in message: ");
             String message = null;
             try {
                 message = br.readLine();
@@ -50,8 +52,12 @@ public class RpcSendUI implements IRpcSendUI {
             }
             if (!message.equals(StringUtils.EMPTY)) {
                 try {
+                    if (message.startsWith("{")) {
+                        Reservation reservation = new Reservation(message.split("[\\{\\}]")[1]);
+                        sendRpcReservation(reservation);
+                    } else
+                        sendRpcMessage(message);
                     Reservation reservation = new Reservation(message);
-                    sendRpcReservation(reservation);
                 } catch (Exception e) {
                     System.out.println("Exception sending to queue: " + e.getMessage());
                     System.exit(-1);
@@ -61,6 +67,47 @@ public class RpcSendUI implements IRpcSendUI {
         }
     }
 
+    private void sendRpcMessage(String message) {
+        String response = null;
+        try {
+            response = call(message);
+            System.out.println(" [.] Got '" + response + "'");
+        } catch (IOException | InterruptedException | TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*
+    Sending Guest Name will return Customer POJO
+     */
+    private String call(String name) throws IOException, InterruptedException, TimeoutException {
+        String corrId = UUID.randomUUID().toString();
+
+        Connection connection = connectionFactory.forName(CONNECTION);
+        Channel channel = channelFactory.openChannel(connection, RPC_MESSAGE_EXCHANGE, RPC_MESSAGE_QUEUE, "");
+        String replyQueueName = channel.queueDeclare().getQueue();
+        AMQP.BasicProperties props = new AMQP.BasicProperties
+                .Builder()
+                .correlationId(corrId)
+                .replyTo(replyQueueName)
+                .build();
+
+        channel.basicPublish("", RPC_MESSAGE_QUEUE, props, name.getBytes(UTF8));
+        final BlockingQueue<String> response = new ArrayBlockingQueue<String>(1);
+
+        channel.basicConsume(replyQueueName, false, new DefaultConsumer(channel) {
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                if (properties.getCorrelationId().equals(corrId)) {
+                    response.offer(new String(body, "UTF-8"));
+                }
+            }
+        });
+        String take = response.take();
+        channel.close();
+        connection.close();
+        return take;
+    }
 
     private void sendRpcReservation(Reservation reservation) {
         String response = null;
@@ -72,6 +119,9 @@ public class RpcSendUI implements IRpcSendUI {
         }
     }
 
+    /*
+    SENDING A RESERVATION OBJECT. WILL RETURN CHECK-IN MESSAGE FROM SERVER
+     */
     private String call(Reservation reservation) throws IOException, InterruptedException, TimeoutException {
         String corrId = UUID.randomUUID().toString();
 
@@ -81,7 +131,7 @@ public class RpcSendUI implements IRpcSendUI {
         mapper.writeValue(out, reservation);
 
         Connection connection = connectionFactory.forName(CONNECTION);
-        Channel channel = channelFactory.openChannel(connection, RPC_MESSAGE_EXCHANGE, RPC_MESSAGE_QUEUE, "");
+        Channel channel = channelFactory.openChannel(connection, RPC_RESERVATION_EXCHANGE, RPC_RESERVATION_QUEUE, "");
         String replyQueueName = channel.queueDeclare().getQueue();
         AMQP.BasicProperties props = new AMQP.BasicProperties
                 .Builder()
@@ -89,7 +139,7 @@ public class RpcSendUI implements IRpcSendUI {
                 .replyTo(replyQueueName)
                 .build();
 
-        channel.basicPublish("", RPC_MESSAGE_QUEUE, props, out.toByteArray());
+        channel.basicPublish("", RPC_RESERVATION_QUEUE, props, out.toByteArray());
         final BlockingQueue<String> response = new ArrayBlockingQueue<String>(1);
 
         channel.basicConsume(replyQueueName, false, new DefaultConsumer(channel) {

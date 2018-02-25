@@ -38,10 +38,12 @@ public class SendUI implements ISendUI {
     @Override
     public void cmdLineSend() {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-
+        System.out.println("----------------------------------------------------------------------------");
+        System.out.println("SENDING A MESSAGE OR RESERVATION OBJECT. NOTHING RETURNED FROM SERVER.");
+        System.out.println("----------------------------------------------------------------------------\n");
         Boolean sending = true;
         while (sending) {
-            System.out.print("Enter a message or a reservation name in {brackets}. [ENTER] to quit: ");
+            System.out.print("Enter reservation name, in {brackets} to send Reservation Object: ");
             String message = null;
             try {
                 message = br.readLine();

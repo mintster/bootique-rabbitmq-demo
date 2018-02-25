@@ -29,8 +29,17 @@ rabbitmq:
      durable: true
      internal: false
      type: TOPIC
+   rpcReservations:
+     autoDelete: false
+     durable: true
+     internal: false
+     type: TOPIC
   queues:
    rpcMessages:
+     autoDelete: false
+     durable: true
+     exclusive: false
+   rpcReservations:
      autoDelete: false
      durable: true
      exclusive: false
@@ -42,3 +51,5 @@ rabbitmq:
      autoDelete: false
      durable: true
      exclusive: false
+
+

@@ -12,10 +12,12 @@ public class CommonUI implements ICommonUI{
 
     public static final String MESSAGE_QUEUE = "bqMessages";
     public static final String RPC_MESSAGE_QUEUE = "rpcMessages";
+    public static final String RPC_RESERVATION_QUEUE = "rpcReservations";
     public static final String RESERVATION_QUEUE = "bqReservations";
     public static final String CONNECTION = "bqConnection";
     public static final String MESSAGE_EXCHANGE = "bqMessages";
     public static final String RPC_MESSAGE_EXCHANGE = "rpcMessages";
+    public static final String RPC_RESERVATION_EXCHANGE = "rpcReservations";
     public static final String RESERVATION_EXCHANGE = "bqReservations";
     public static final String UTF8 = "UTF-8";
 
@@ -64,7 +66,7 @@ public class CommonUI implements ICommonUI{
         return AppStartup.valueOf(rabbitConfig.startupType.toUpperCase());
     }
 
-    // from a stackoverflow answer...
+    // smash and grab from stackoverflow...
     private String[] suffixes = {
         //    0     1     2     3     4     5     6     7     8     9
         "th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th",

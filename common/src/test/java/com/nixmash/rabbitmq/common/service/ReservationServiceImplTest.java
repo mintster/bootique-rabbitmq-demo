@@ -1,6 +1,7 @@
 package com.nixmash.rabbitmq.common.service;
 
 import com.nixmash.rabbitmq.common.CommonTestBase;
+import com.nixmash.rabbitmq.common.dto.Customer;
 import com.nixmash.rabbitmq.common.dto.Reservation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,5 +67,13 @@ public class ReservationServiceImplTest extends CommonTestBase {
         assertTrue(reservationService.getPastVisitMessage(BOB).contains("This is his"));
         assertTrue(reservationService.getPastVisitMessage(JANET).contains("This is her"));
         assertTrue(reservationService.getPastVisitMessage(KEN).contains("new guest!"));
+    }
+
+    @Test
+    public void getCustomerListTest() {
+        List<Customer> customers = reservationService.getCustomerList();
+        for (Customer customer : customers) {
+            System.out.println(customer);
+        }
     }
 }

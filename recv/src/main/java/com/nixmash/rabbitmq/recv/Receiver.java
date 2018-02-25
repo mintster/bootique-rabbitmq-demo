@@ -4,6 +4,8 @@ import com.google.inject.Binder;
 import com.google.inject.Inject;
 import com.google.inject.Module;
 import com.nixmash.rabbitmq.common.config.RabbitConfig;
+import com.nixmash.rabbitmq.common.service.ReservationService;
+import com.nixmash.rabbitmq.common.service.ReservationServiceImpl;
 import com.nixmash.rabbitmq.common.ui.CommonUI;
 import com.nixmash.rabbitmq.common.ui.ICommonUI;
 import com.nixmash.rabbitmq.recv.ui.IProcessUI;
@@ -35,6 +37,7 @@ public class Receiver implements Module {
             switch (commonUI.getAppStartup()) {
                 case RPC:
                     runtime.getInstance(RpcProcessUI.class).handleRpcMessageQueue();
+                    runtime.getInstance(RpcProcessUI.class).handleRpcReservationQueue();
                     break;
                 case MESSAGES:
                     runtime.getInstance(ProcessUI.class).handleMessageQueue();
@@ -49,6 +52,7 @@ public class Receiver implements Module {
     @Override
     public void configure(Binder binder) {
         binder.bind(IProcessUI.class).to(ProcessUI.class);
+        binder.bind(ReservationService.class).to(ReservationServiceImpl.class);
         binder.bind(IRpcProcessUI.class).to(RpcProcessUI.class);
         binder.bind(ICommonUI.class).to(CommonUI.class);
     }

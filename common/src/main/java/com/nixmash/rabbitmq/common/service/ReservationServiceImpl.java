@@ -1,12 +1,15 @@
 package com.nixmash.rabbitmq.common.service;
 
 import com.google.inject.Inject;
+import com.nixmash.rabbitmq.common.dto.Customer;
 import com.nixmash.rabbitmq.common.dto.Reservation;
 import com.nixmash.rabbitmq.common.ui.CommonUI;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import static com.nixmash.rabbitmq.common.ui.CommonUI.*;
 
@@ -18,6 +21,8 @@ public class ReservationServiceImpl implements ReservationService {
     public ReservationServiceImpl(CommonUI commonUI) {
         this.commonUI = commonUI;
     }
+
+    // region Reservations
 
     @Override
     public Reservation addReservation(String name) {
@@ -69,6 +74,19 @@ public class ReservationServiceImpl implements ReservationService {
         return (int) reservations.stream().filter(r -> r.getName().equalsIgnoreCase(guestName)).count();
     }
 
+// endregion
 
+    // region Customers
+
+    @Override
+    public List<Customer> getCustomerList() {
+        List<Customer> customers = new ArrayList<>();
+        customers.add(new Customer("Bob", GENDER_MALE, 2));
+        customers.add(new Customer("Bill", GENDER_MALE, 1));
+        customers.add(new Customer("Janet", GENDER_FEMALE, 3));
+        return customers;
+    }
+
+    // endregion
 
 }
