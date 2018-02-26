@@ -2,8 +2,10 @@ package com.nixmash.rabbitmq.send.ui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import com.nixmash.rabbitmq.common.dto.Customer;
 import com.nixmash.rabbitmq.common.dto.Reservation;
 import com.rabbitmq.client.*;
+import com.rabbitmq.tools.json.JSONReader;
 import io.bootique.rabbitmq.client.channel.ChannelFactory;
 import io.bootique.rabbitmq.client.connection.ConnectionFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -68,7 +70,7 @@ public class RpcSendUI implements IRpcSendUI {
     }
 
     private void sendRpcMessage(String message) {
-        String response = null;
+        Customer response = null;
         try {
             response = call(message);
             System.out.println(" [.] Got '" + response + "'");
@@ -80,11 +82,12 @@ public class RpcSendUI implements IRpcSendUI {
     /*
     Sending Guest Name will return Customer POJO
      */
-    private String call(String name) throws IOException, InterruptedException, TimeoutException {
+    private Customer call(String name) throws IOException, InterruptedException, TimeoutException {
         String corrId = UUID.randomUUID().toString();
 
         Connection connection = connectionFactory.forName(CONNECTION);
-        Channel channel = channelFactory.openChannel(connection, RPC_MESSAGE_EXCHANGE, RPC_MESSAGE_QUEUE, "");
+        Channel channel = channelFactory.openChannel(connection,
+                RPC_MESSAGE_EXCHANGE, RPC_MESSAGE_QUEUE, "");
         String replyQueueName = channel.queueDeclare().getQueue();
         AMQP.BasicProperties props = new AMQP.BasicProperties
                 .Builder()
@@ -93,17 +96,20 @@ public class RpcSendUI implements IRpcSendUI {
                 .build();
 
         channel.basicPublish("", RPC_MESSAGE_QUEUE, props, name.getBytes(UTF8));
-        final BlockingQueue<String> response = new ArrayBlockingQueue<String>(1);
+        final BlockingQueue<Customer> response = new ArrayBlockingQueue<Customer>(1);
 
         channel.basicConsume(replyQueueName, false, new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                 if (properties.getCorrelationId().equals(corrId)) {
-                    response.offer(new String(body, "UTF-8"));
+                    JSONReader jsonReader = new JSONReader();
+                    ObjectMapper mapper = new ObjectMapper();
+                    Customer customer= mapper.readValue(body, Customer.class);
+                    response.offer(customer);
                 }
             }
         });
-        String take = response.take();
+        Customer take = response.take();
         channel.close();
         connection.close();
         return take;
@@ -131,7 +137,8 @@ public class RpcSendUI implements IRpcSendUI {
         mapper.writeValue(out, reservation);
 
         Connection connection = connectionFactory.forName(CONNECTION);
-        Channel channel = channelFactory.openChannel(connection, RPC_RESERVATION_EXCHANGE, RPC_RESERVATION_QUEUE, "");
+        Channel channel = channelFactory.openChannel(connection,
+                RPC_RESERVATION_EXCHANGE, RPC_RESERVATION_QUEUE, "");
         String replyQueueName = channel.queueDeclare().getQueue();
         AMQP.BasicProperties props = new AMQP.BasicProperties
                 .Builder()
@@ -144,7 +151,8 @@ public class RpcSendUI implements IRpcSendUI {
 
         channel.basicConsume(replyQueueName, false, new DefaultConsumer(channel) {
             @Override
-            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+            public void handleDelivery(String consumerTag, Envelope envelope,
+                                       AMQP.BasicProperties properties, byte[] body) throws IOException {
                 if (properties.getCorrelationId().equals(corrId)) {
                     response.offer(new String(body, "UTF-8"));
                 }

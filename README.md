@@ -5,7 +5,28 @@ Demo using the Bootique RabbitMQ Module. Also demonstrates POJO -> JSON Message 
 
 ## Setup
 
-RabbitMQ Server must be running. It is assumed RabbitMQ *guest/guest* access is enabled. The Demo App creates **bqMessages** and **bqReservations** Exchanges and Queues automatically.
+RabbitMQ Server must be running. It is assumed RabbitMQ *guest/guest* access is enabled. Depending on your RabbitMQ configuration you may have to create the following Exchanges and Queues, which may not be created automatically.
+
+Create Queues listed in Bootique Module `bootique.yaml` files: 
+
+**Exchanges/Queues:** *bqMessages, bqReservations, rpcMessages, rpcReservations* 
+
+***Note:** set _durable_ property to TRUE. Also, any Exchanges created are type TOPIC.*
+
+## Two Demo Options
+
+There are two demo options: 
+
+1. One-Way Send of String Message or Reservation Object. Server acknowledges receipt. Nothing returned to client.
+2. RabbitMQ RPC, A) sending a Reservation Object and returning a Message, B) sending a String Message and retrieving a Customer Object
+
+To switch between demo options, comment the appropriate property found in the `Common` Module `/resources/common.properties` file.
+
+```bash
+startup.type=rpc
+#startup.type=messages
+``` 
+To send a `Reservation` Object wrap the string in {curly brackets} in the Sender application when prompted.
 
 ## Running the App
 
@@ -27,12 +48,11 @@ To receive messages, in a 2nd Terminal Window use the following:
 $ java -jar send/target/mqreceive.jar
 ```
 
-The demo handles both text messages and `Reservation` objects. To send a `Reservation` wrap the string in {curly brackets} in the Sender application when prompted.
-
 ## NixMash Posts
 
 - [A Bootique RabbitMQ Demo Application](http://nixmash.com/post/a-bootique-rabbitmq-demo)
 - [Passing POJOs in RabbitMQ](http://nixmash.com/post/passing-pojos-in-rabbitmq)
+- [Rabbit RPC Demo with Bootique](https://nixmash.com/post/rabbitmq-rpc-java-demo-with-bootique)
 
 
-***Last Updated** 11-14-2017*
+***Last Updated** 02-26-2018*

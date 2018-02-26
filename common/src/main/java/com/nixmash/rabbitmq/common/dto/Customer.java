@@ -15,24 +15,26 @@ public class Customer implements Serializable {
     }
 
     public Customer(String name, String gender, Integer visits) {
-        this.id = UUID.randomUUID();
         this.name = name;
         this.gender = gender;
         this.visits = visits;
-        this.createdDateTime = new Timestamp(currentDateTime);
     }
 
     //region private properties
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private UUID id;
+    private UUID id = UUID.randomUUID();
     private String name;
-    private String gender;
-    private Integer visits;
+    private String gender = "NA";
+    private Integer visits = 0;
 
     @JsonFormat
             (shape = JsonFormat.Shape.STRING, pattern = "MM-dd-yyyy hh:mm:ss:SSS")
-    private Timestamp createdDateTime;
+    private Timestamp createdDateTime = new Timestamp(currentDateTime);
+
+    public Customer(String guestName) {
+        this.name = guestName;
+    }
     //endregion
 
 

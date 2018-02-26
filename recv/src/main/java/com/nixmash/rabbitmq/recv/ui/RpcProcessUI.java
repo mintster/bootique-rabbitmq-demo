@@ -2,6 +2,7 @@ package com.nixmash.rabbitmq.recv.ui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import com.nixmash.rabbitmq.common.dto.Customer;
 import com.nixmash.rabbitmq.common.dto.Reservation;
 import com.nixmash.rabbitmq.common.service.ReservationService;
 import com.nixmash.rabbitmq.common.ui.CommonUI;
@@ -11,6 +12,7 @@ import io.bootique.rabbitmq.client.connection.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import static com.nixmash.rabbitmq.common.ui.CommonUI.*;
@@ -30,6 +32,11 @@ public class RpcProcessUI implements IRpcProcessUI {
         this.reservationService = reservationService;
     }
 
+    /**
+     * handleRpcMessageQueue() receives String message, returns a Customer Object
+     *
+     * @throws IOException
+     */
     @Override
     public void handleRpcMessageQueue() throws IOException {
         Connection connection = connectionFactory.forName(CONNECTION);
@@ -45,27 +52,36 @@ public class RpcProcessUI implements IRpcProcessUI {
                         .build();
 
                 String response = "";
-                try {
-                    String message = new String(body, "UTF-8");
-                    System.out.println(" [x] Received '" + message + " [at] " + commonUI.getDateTime() + "'");
-                    // TODO: Add reservation processing, return Customer Object
-                    response += "Your message: " + message;
-                } catch (RuntimeException e) {
-                    System.out.println(" [.] EXCEPTION:  " + e.toString());
-                } finally {
-                    channel.basicPublish("", properties.getReplyTo(), replyProps, response.getBytes("UTF-8"));
-                    channel.basicAck(envelope.getDeliveryTag(), false);
-                    // RabbitMq consumer worker thread notifies the RPC server owner thread
-                    synchronized (this) {
-                        this.notify();
-                    }
+                String guestName = new String(body, "UTF-8");
+                System.out.println(" [x] Received '" + guestName + " [at] " + commonUI.getDateTime() + "'");
+                // TODO: Add reservation processing, return Customer Object
+                Customer customer = reservationService.getCustomerList()
+                        .stream()
+                        .filter(c -> c.getName().equalsIgnoreCase(guestName))
+                        .findFirst().orElse(new Customer(guestName));
+
+                ObjectMapper mapper = new ObjectMapper();
+                String json = mapper.writeValueAsString(customer);
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                mapper.writeValue(out, customer);
+
+                channel.basicPublish("", properties.getReplyTo(), replyProps, out.toByteArray());
+                channel.basicAck(envelope.getDeliveryTag(), false);
+                // RabbitMq consumer worker thread notifies the RPC server owner thread
+                synchronized (this) {
+                    this.notify();
                 }
             }
         };
-    channel.basicConsume(RPC_MESSAGE_QUEUE, false, consumer);
+        channel.basicConsume(RPC_MESSAGE_QUEUE, false, consumer);
 
     }
 
+    /**
+     * handleRpcReservationQueue() receives Reservation Object, returns a String Message
+     *
+     * @throws IOException
+     */
     @Override
     public void handleRpcReservationQueue() throws IOException {
         Connection connection = connectionFactory.forName(CONNECTION);
@@ -74,7 +90,9 @@ public class RpcProcessUI implements IRpcProcessUI {
 
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
-            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+            public void handleDelivery(String consumerTag,
+                                       Envelope envelope, AMQP.BasicProperties properties, byte[] body)
+                    throws IOException {
                 AMQP.BasicProperties replyProps = new AMQP.BasicProperties
                         .Builder()
                         .correlationId(properties.getCorrelationId())
@@ -85,14 +103,14 @@ public class RpcProcessUI implements IRpcProcessUI {
                     JSONReader jsonReader = new JSONReader();
                     ObjectMapper mapper = new ObjectMapper();
                     Reservation reservation = mapper.readValue(body, Reservation.class);
-                    System.out.println(" [x] Received '" + reservation.toString() + " [at] " + commonUI.getDateTime() + "'");
+                    System.out.println(" [x] Received '" + reservation.toString() + " [at] " +
+                            commonUI.getDateTime() + "'");
                     response += reservationService.getPastVisitMessage(reservation.getName());
                 } catch (RuntimeException e) {
                     System.out.println(" [.] EXCEPTION:  " + e.toString());
                 } finally {
                     channel.basicPublish("", properties.getReplyTo(), replyProps, response.getBytes("UTF-8"));
                     channel.basicAck(envelope.getDeliveryTag(), false);
-                    // RabbitMq consumer worker thread notifies the RPC server owner thread
                     synchronized (this) {
                         this.notify();
                     }
