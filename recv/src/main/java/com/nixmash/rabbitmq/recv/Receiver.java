@@ -37,6 +37,7 @@ public class Receiver implements Module {
             switch (commonUI.getAppStartup()) {
                 case RPC:
                     runtime.getInstance(RpcProcessUI.class).handleRpcMessageQueue();
+                    runtime.getInstance(RpcProcessUI.class).handleRpcListRequestQueue();
                     runtime.getInstance(RpcProcessUI.class).handleRpcReservationQueue();
                     break;
                 case MESSAGES:

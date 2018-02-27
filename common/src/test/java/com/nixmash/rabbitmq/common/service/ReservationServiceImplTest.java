@@ -72,8 +72,6 @@ public class ReservationServiceImplTest extends CommonTestBase {
     @Test
     public void getCustomerListTest() {
         List<Customer> customers = reservationService.getCustomerList();
-        for (Customer customer : customers) {
-            System.out.println(customer);
-        }
+       assertTrue(customers.size() > 1);
     }
 }

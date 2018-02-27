@@ -12,15 +12,16 @@ public class CommonUI implements ICommonUI{
 
     public static final String MESSAGE_QUEUE = "bqMessages";
     public static final String RPC_MESSAGE_QUEUE = "rpcMessages";
+    public static final String RPC_LIST_QUEUE = "rpcList";
     public static final String RPC_RESERVATION_QUEUE = "rpcReservations";
     public static final String RESERVATION_QUEUE = "bqReservations";
     public static final String CONNECTION = "bqConnection";
     public static final String MESSAGE_EXCHANGE = "bqMessages";
     public static final String RPC_MESSAGE_EXCHANGE = "rpcMessages";
+    public static final String RPC_LIST_EXCHANGE = "rpcList";
     public static final String RPC_RESERVATION_EXCHANGE = "rpcReservations";
     public static final String RESERVATION_EXCHANGE = "bqReservations";
     public static final String UTF8 = "UTF-8";
-
 
     public static final String BOB = "Bob";
     public static final String BILL = "Bill";

@@ -1,11 +1,11 @@
 package com.nixmash.rabbitmq.send.ui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.inject.Inject;
 import com.nixmash.rabbitmq.common.dto.Customer;
 import com.nixmash.rabbitmq.common.dto.Reservation;
 import com.rabbitmq.client.*;
-import com.rabbitmq.tools.json.JSONReader;
 import io.bootique.rabbitmq.client.channel.ChannelFactory;
 import io.bootique.rabbitmq.client.connection.ConnectionFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -54,12 +55,14 @@ public class RpcSendUI implements IRpcSendUI {
             }
             if (!message.equals(StringUtils.EMPTY)) {
                 try {
-                    if (message.startsWith("{")) {
+                    if (message.equals("?")) {
+                        sendRpcListRequest();
+                    }
+                    else if (message.startsWith("{")) {
                         Reservation reservation = new Reservation(message.split("[\\{\\}]")[1]);
                         sendRpcReservation(reservation);
                     } else
                         sendRpcMessage(message);
-                    Reservation reservation = new Reservation(message);
                 } catch (Exception e) {
                     System.out.println("Exception sending to queue: " + e.getMessage());
                     System.exit(-1);
@@ -80,8 +83,8 @@ public class RpcSendUI implements IRpcSendUI {
     }
 
     /*
-    Sending Guest Name will return Customer POJO
-     */
+  Sending Guest Name will return Customer POJO
+   */
     private Customer call(String name) throws IOException, InterruptedException, TimeoutException {
         String corrId = UUID.randomUUID().toString();
 
@@ -102,7 +105,6 @@ public class RpcSendUI implements IRpcSendUI {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                 if (properties.getCorrelationId().equals(corrId)) {
-                    JSONReader jsonReader = new JSONReader();
                     ObjectMapper mapper = new ObjectMapper();
                     Customer customer= mapper.readValue(body, Customer.class);
                     response.offer(customer);
@@ -110,6 +112,57 @@ public class RpcSendUI implements IRpcSendUI {
             }
         });
         Customer take = response.take();
+        channel.close();
+        connection.close();
+        return take;
+    }
+
+    private void sendRpcListRequest() {
+        List<Customer> response = null;
+        try {
+            response = call();
+            System.out.println(" [.] Got '" + response + "'");
+        } catch (IOException | InterruptedException | TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*
+  Sending Request for Customer POJO List
+   */
+    private List<Customer> call() throws IOException, InterruptedException, TimeoutException {
+        String corrId = UUID.randomUUID().toString();
+
+        //region Setup Connection and Queue
+        Connection connection = connectionFactory.forName(CONNECTION);
+        Channel channel = channelFactory.openChannel(connection,
+                RPC_LIST_EXCHANGE, RPC_LIST_QUEUE, "");
+        String replyQueueName = channel.queueDeclare().getQueue();
+        AMQP.BasicProperties props = new AMQP.BasicProperties
+                .Builder()
+                .correlationId(corrId)
+                .replyTo(replyQueueName)
+                .build();
+        //endregion
+
+        channel.basicPublish("", RPC_LIST_QUEUE, props, null);
+        final BlockingQueue<List<Customer>> response = new ArrayBlockingQueue<>(1);
+
+        channel.basicConsume(replyQueueName, false, new DefaultConsumer(channel) {
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope,
+                                       AMQP.BasicProperties properties, byte[] body) throws IOException {
+                if (properties.getCorrelationId().equals(corrId)) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    List<Customer> customers = mapper.readValue(body,
+                            TypeFactory
+                                    .defaultInstance()
+                                    .constructCollectionType(List.class, Customer.class));
+                    response.offer(customers);
+                }
+            }
+        });
+        List<Customer> take = response.take();
         channel.close();
         connection.close();
         return take;

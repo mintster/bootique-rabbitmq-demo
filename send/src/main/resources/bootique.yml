@@ -14,6 +14,11 @@ rabbitmq:
       username: guest
       virtualHost: /
   exchanges:
+   rpcList:
+     autoDelete: false
+     durable: true
+     internal: false
+     type: TOPIC
    rpcMessages:
      autoDelete: false
      durable: true
@@ -35,6 +40,10 @@ rabbitmq:
      internal: false
      type: TOPIC
   queues:
+   rpcList:
+     autoDelete: false
+     durable: true
+     exclusive: false
    rpcMessages:
      autoDelete: false
      durable: true

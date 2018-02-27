@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 import static com.nixmash.rabbitmq.common.ui.CommonUI.*;
 
@@ -74,6 +75,43 @@ public class RpcProcessUI implements IRpcProcessUI {
             }
         };
         channel.basicConsume(RPC_MESSAGE_QUEUE, false, consumer);
+
+    }
+
+    /**
+     * handleRpcMessageQueue() receives String message, returns a Customer Object
+     */
+    @Override
+    public void handleRpcListRequestQueue() throws IOException {
+        Connection connection = connectionFactory.forName(CONNECTION);
+        Channel channel = connection.createChannel();
+        channel.basicQos(1);
+
+        Consumer consumer = new DefaultConsumer(channel) {
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope,
+                                       AMQP.BasicProperties properties, byte[] body) throws IOException {
+                AMQP.BasicProperties replyProps = new AMQP.BasicProperties
+                        .Builder()
+                        .correlationId(properties.getCorrelationId())
+                        .build();
+
+                String guestName = new String(body, "UTF-8");
+                System.out.println(" [x] Received '" + guestName + " [at] " + commonUI.getDateTime() + "'");
+
+                List<Customer> customers = reservationService.getCustomerList();
+                ObjectMapper mapper = new ObjectMapper();
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                mapper.writeValue(out, customers);
+
+                channel.basicPublish("", properties.getReplyTo(), replyProps, out.toByteArray());
+                channel.basicAck(envelope.getDeliveryTag(), false);
+                synchronized (this) {
+                    this.notify();
+                }
+            }
+        };
+        channel.basicConsume(RPC_LIST_QUEUE, false, consumer);
 
     }
 
