@@ -53,6 +53,7 @@ $ java -jar send/target/mqreceive.jar
 - [A Bootique RabbitMQ Demo Application](http://nixmash.com/post/a-bootique-rabbitmq-demo)
 - [Passing POJOs in RabbitMQ](http://nixmash.com/post/passing-pojos-in-rabbitmq)
 - [Rabbit RPC Demo with Bootique](https://nixmash.com/post/rabbitmq-rpc-java-demo-with-bootique)
+- [Returning an Java Object List in RabbitMQ RPC](https://nixmash.com/post/returning-an-java-object-list-from-rabbitmq-rpc)
 
 
 ***Last Updated** 02-26-2018*
